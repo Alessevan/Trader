@@ -1,0 +1,10 @@
+main: fr.bakaaless.Trader.plugin.TraderPlugin
+version: 0.0.1-ALPHA
+name: Trader
+author: BakaAless
+api-version: 1.15
+softdepend:
+  - Vault
+commands:
+  trader:
+    usage: ""

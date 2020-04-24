@@ -1,0 +1,34 @@
+prefix:
+  info: "&3&lTrader &8&l» &r"
+  error: "&c&lTrader &4&l» &r"
+messages:
+  info:
+    menu:
+      accept: "&aAccepter"
+      deny: "&cRefuser"
+      edit: "&6Éditer"
+      compteur: "&dCompteur"
+      status:
+        edit: "&dÉdition"
+        ready: "&dPrêt"
+      money:
+        show: "&dArgent &5: &7%money% &6Gory"
+        remove: "&dRetirer de l'argent"
+        add: "&dAjouter de l'argent"
+    success: "&7L'échange a été un succès."
+    sent: "&7La demande d'échange a été envoyée."
+    receive: "&7Vous avez reçu une demande d'échange de &b%player%&7."
+    accept: "&7Demande d'échange acceptée."
+    deny: "&7Vous avez refusé la demande."
+    stop: "&7Tous les échanges ont été stoppés."
+  error:
+    argus: "&cTrop peu d'arguments."
+    cancel:
+      player: "&cVous avez annulé l'échange."
+      other: "&cL'échange a été annulé."
+      console: "&cLe serveur a annulé votre échange suite à un redémarrage."
+    none: "&cVous n'avez aucune demande."
+    deny: "&cDemande d'échange refusée."
+    expired: "&cDemande d'échange expirée."
+    yourself: "&cVous ne pouvez pas échanger avec votre alter ego."
+    found: "&cAucun joueur trouvé."
