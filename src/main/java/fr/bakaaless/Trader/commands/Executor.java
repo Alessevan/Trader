@@ -4,10 +4,12 @@ import fr.bakaaless.Trader.object.Trader;
 import fr.bakaaless.Trader.plugin.TraderPlugin;
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ public class Executor implements CommandExecutor, TabCompleter {
     public Executor() {
         this.main = TraderPlugin.getInstance();
         this.accept = new HashMap<>();
-        this.getMain().getCommand("trader").setExecutor(this);
+        this.getMain().getCommand("echange").setExecutor(this);
     }
 
     @Override
@@ -36,9 +38,14 @@ public class Executor implements CommandExecutor, TabCompleter {
         }
         final Player player = (Player) sender;
         try {
+            final int radius = this.getMain().getFileManager().getFile("config").getInt("radius");
             if (args[0].equalsIgnoreCase("accept")) {
                 if (!this.getAccept().containsKey(player)) {
                     player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("none"));
+                    return true;
+                }
+                if (!this.getPlayerRadius(player.getLocation(), radius).contains(this.getAccept().get(player))) {
+                    player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("outrange"));
                     return true;
                 }
                 player.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("accept"));
@@ -62,14 +69,14 @@ public class Executor implements CommandExecutor, TabCompleter {
                     return true;
                 }
             }
-            for (final Player players : this.getMain().getServer().getOnlinePlayers()) {
+            for (final Player players : this.getPlayerRadius(player.getLocation(), radius)) {
                 if (!players.getName().toLowerCase().equalsIgnoreCase(args[0])) continue;
                 if (player.equals(players)) {
                     player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("yourself"));
                     return true;
                 }
                 if (this.getAccept().containsKey(player) && this.getAccept().get(player).equals(players)) {
-                    return player.performCommand("trader accept");
+                    return player.performCommand(label + " accept");
                 }
                 player.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("sent"));
                 players.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("receive").replace("%player%", player.getName()));
@@ -80,7 +87,7 @@ public class Executor implements CommandExecutor, TabCompleter {
                         players.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("expired"));
                         this.getAccept().remove(player);
                     }
-                }, 120L * 20L);
+                }, this.getMain().getFileManager().getFile("config").getInt("expired") * 20L);
                 return true;
             }
             player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("found"));
@@ -93,6 +100,11 @@ public class Executor implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] args) {
         final ArrayList<String> completions = new ArrayList<>();
+        if (!(commandSender instanceof Player)) {
+            if ("stop".startsWith(args[0].toLowerCase()))
+                completions.add("stop");
+            return completions;
+        }
         if (args.length == 1) {
             if ("accept".startsWith(args[0].toLowerCase()))
                 completions.add("accept");
@@ -101,7 +113,7 @@ public class Executor implements CommandExecutor, TabCompleter {
             if (commandSender.hasPermission("trader.stop"))
                 if ("stop".startsWith(args[0].toLowerCase()))
                     completions.add("stop");
-            for (final Player player : this.getMain().getServer().getOnlinePlayers()) {
+            for (final Player player : this.getPlayerRadius(((Player) commandSender).getLocation(), this.getMain().getFileManager().getFile("config").getInt("radius"))) {
                 if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                     if (player.equals(commandSender)) continue;
                     completions.add(player.getName());
@@ -110,5 +122,17 @@ public class Executor implements CommandExecutor, TabCompleter {
             return completions;
         }
         return new ArrayList<>();
+    }
+
+    private List<Player> getPlayerRadius(final Location location, final int radius) {
+        final List<Player> players = new ArrayList<>();
+        for (final Entity entity : location.getWorld().getNearbyEntities(location, radius, radius, radius)) {
+            if (entity instanceof Player) {
+                if (entity.getName().contains("&") || entity.getName().contains("§") || ((Player) entity).isSleepingIgnored() || !((Player) entity).isOnline())
+                    continue;
+                players.add((Player) entity);
+            }
+        }
+        return players;
     }
 }

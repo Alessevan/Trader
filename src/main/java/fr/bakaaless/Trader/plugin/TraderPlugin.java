@@ -40,7 +40,7 @@ public class TraderPlugin extends JavaPlugin {
         }
         TraderPlugin.instance = this;
         try {
-            this.fileManager = new FileManager(this, "messages");
+            this.fileManager = new FileManager(this, "messages", "config");
         } catch (IOException | InvalidConfigurationException e) {
             this.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', "§c§lTrading §4§l» §cError while retrieve creating files."));
         }

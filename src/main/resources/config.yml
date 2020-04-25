@@ -1,0 +1,2 @@
+radius: 10 # in blocks
+expired: 60 # in seconds

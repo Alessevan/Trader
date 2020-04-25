@@ -99,6 +99,7 @@ public class Trader implements Listener {
         InventoryDragEvent.getHandlerList().unregister(this);
         InventoryClickEvent.getHandlerList().unregister(this);
         if (this.getStatus().equals(TransactStatus.FINISH)) return;
+        this.status = TransactStatus.CANCELLED;
         for (final Player player : this.getPlayerInventoryMap().keySet()) {
             if (!player.equals(cancelled)) {
                 player.sendMessage(this.main.getFileManager().getErrorWithPrefix("cancel.other"));
@@ -114,6 +115,7 @@ public class Trader implements Listener {
             }
             player.closeInventory();
         }
+        this.status = TransactStatus.FINISH;
         this.main.removeTraders(this);
     }
 
@@ -122,7 +124,7 @@ public class Trader implements Listener {
         InventoryDragEvent.getHandlerList().unregister(this);
         InventoryClickEvent.getHandlerList().unregister(this);
         if (this.getStatus().equals(TransactStatus.FINISH)) return;
-
+        this.status = TransactStatus.CANCELLED;
         for (final Player player : this.getPlayerInventoryMap().keySet()) {
             player.sendMessage(this.main.getFileManager().getErrorWithPrefix("cancel.console"));
             final Inventory inventory = player.getOpenInventory().getTopInventory();
@@ -135,6 +137,7 @@ public class Trader implements Listener {
             }
             player.closeInventory();
         }
+        this.status = TransactStatus.FINISH;
         this.main.removeTraders(this);
     }
 
@@ -227,7 +230,7 @@ public class Trader implements Listener {
                 e.getClickedInventory().setItem(39, ItemUtils.get(Material.GREEN_CONCRETE, this.titles.get("status.ready")));
                 e.getClickedInventory().setItem(45, ItemUtils.get(Material.ORANGE_CONCRETE, this.titles.get("edit")));
                 this.getPlayerStatusMap().replace(player, PlayerStatus.WAITING);
-                if (this.getPlayerStatusMap().get(other).equals(PlayerStatus.WAITING)) {
+                if (this.getPlayerStatusMap().get(other).equals(PlayerStatus.WAITING) && this.getStatus().equals(TransactStatus.WAITING)) {
                     this.progress();
                 }
                 return;
@@ -360,6 +363,7 @@ public class Trader implements Listener {
     private enum TransactStatus {
         WAITING,
         STARTING,
+        CANCELLED,
         FINISH
     }
 

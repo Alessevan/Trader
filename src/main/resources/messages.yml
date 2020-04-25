@@ -31,4 +31,5 @@ messages:
     deny: "&cDemande d'échange refusée."
     expired: "&cDemande d'échange expirée."
     yourself: "&cVous ne pouvez pas échanger avec votre alter ego."
-    found: "&cAucun joueur trouvé."
+    found: "&cAucun joueur trouvé. Il est peut-être trop éloigné."
+    outrange: "&Le joueur est hors de portée."
