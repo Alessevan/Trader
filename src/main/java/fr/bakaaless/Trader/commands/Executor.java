@@ -2,8 +2,6 @@ package fr.bakaaless.Trader.commands;
 
 import fr.bakaaless.Trader.object.Trader;
 import fr.bakaaless.Trader.plugin.TraderPlugin;
-import lombok.AccessLevel;
-import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -19,16 +17,14 @@ import java.util.Map;
 
 public class Executor implements CommandExecutor, TabCompleter {
 
-    @Getter(AccessLevel.PRIVATE)
     private final TraderPlugin main;
 
-    @Getter(AccessLevel.PRIVATE)
     private final Map<Player, Player> accept;
 
     public Executor() {
         this.main = TraderPlugin.getInstance();
         this.accept = new HashMap<>();
-        this.getMain().getCommand("echange").setExecutor(this);
+        this.main.getCommand("echange").setExecutor(this);
     }
 
     @Override
@@ -38,61 +34,61 @@ public class Executor implements CommandExecutor, TabCompleter {
         }
         final Player player = (Player) sender;
         try {
-            final int radius = this.getMain().getFileManager().getFile("config").getInt("radius");
+            final int radius = this.main.getFileManager().getFile("config").getInt("radius");
             if (args[0].equalsIgnoreCase("accept")) {
-                if (!this.getAccept().containsKey(player)) {
-                    player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("none"));
+                if (!this.accept.containsKey(player)) {
+                    player.sendMessage(this.main.getFileManager().getErrorWithPrefix("none"));
                     return true;
                 }
-                if (!this.getPlayerRadius(player.getLocation(), radius).contains(this.getAccept().get(player))) {
-                    player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("outrange"));
+                if (!this.getPlayerRadius(player.getLocation(), radius).contains(this.accept.get(player))) {
+                    player.sendMessage(this.main.getFileManager().getErrorWithPrefix("outrange"));
                     return true;
                 }
-                player.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("accept"));
-                this.getAccept().get(player).sendMessage(this.getMain().getFileManager().getMessageWithPrefix("accept"));
-                this.getMain().addTraders(new Trader(player, this.getAccept().get(player)));
-                this.getAccept().remove(player);
+                player.sendMessage(this.main.getFileManager().getMessageWithPrefix("accept"));
+                this.accept.get(player).sendMessage(this.main.getFileManager().getMessageWithPrefix("accept"));
+                this.main.addTraders(new Trader(player, this.accept.get(player)));
+                this.accept.remove(player);
                 return true;
             } else if (args[0].equalsIgnoreCase("deny")) {
-                if (!this.getAccept().containsKey(player)) {
-                    player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("none"));
+                if (!this.accept.containsKey(player)) {
+                    player.sendMessage(this.main.getFileManager().getErrorWithPrefix("none"));
                     return true;
                 }
-                player.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("deny"));
-                this.getAccept().get(player).sendMessage(this.getMain().getFileManager().getErrorWithPrefix("deny"));
-                this.getAccept().remove(player);
+                player.sendMessage(this.main.getFileManager().getMessageWithPrefix("deny"));
+                this.accept.get(player).sendMessage(this.main.getFileManager().getErrorWithPrefix("deny"));
+                this.accept.remove(player);
                 return true;
             } else if (args[0].equalsIgnoreCase("stop")) {
                 if (player.hasPermission("trader.stop")) {
-                    this.getMain().stopAll();
-                    player.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("stop"));
+                    this.main.stopAll();
+                    player.sendMessage(this.main.getFileManager().getMessageWithPrefix("stop"));
                     return true;
                 }
             }
             for (final Player players : this.getPlayerRadius(player.getLocation(), radius)) {
                 if (!players.getName().toLowerCase().equalsIgnoreCase(args[0])) continue;
                 if (player.equals(players)) {
-                    player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("yourself"));
+                    player.sendMessage(this.main.getFileManager().getErrorWithPrefix("yourself"));
                     return true;
                 }
-                if (this.getAccept().containsKey(player) && this.getAccept().get(player).equals(players)) {
+                if (this.accept.containsKey(player) && this.accept.get(player).equals(players)) {
                     return player.performCommand(label + " accept");
                 }
-                player.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("sent"));
-                players.sendMessage(this.getMain().getFileManager().getMessageWithPrefix("receive").replace("%player%", player.getName()));
-                this.getAccept().put(players, player);
-                this.getMain().getServer().getScheduler().runTaskLaterAsynchronously(this.getMain(), () -> {
-                    if (this.getAccept().containsKey(players) && this.getAccept().get(players).equals(player)) {
-                        player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("expired"));
-                        players.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("expired"));
-                        this.getAccept().remove(player);
+                player.sendMessage(this.main.getFileManager().getMessageWithPrefix("sent"));
+                players.sendMessage(this.main.getFileManager().getMessageWithPrefix("receive").replace("%player%", player.getName()));
+                this.accept.put(players, player);
+                this.main.getServer().getScheduler().runTaskLaterAsynchronously(this.main, () -> {
+                    if (this.accept.containsKey(players) && this.accept.get(players).equals(player)) {
+                        player.sendMessage(this.main.getFileManager().getErrorWithPrefix("expired"));
+                        players.sendMessage(this.main.getFileManager().getErrorWithPrefix("expired"));
+                        this.accept.remove(player);
                     }
-                }, this.getMain().getFileManager().getFile("config").getInt("expired") * 20L);
+                }, this.main.getFileManager().getFile("config").getInt("expired") * 20L);
                 return true;
             }
-            player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("found"));
+            player.sendMessage(this.main.getFileManager().getErrorWithPrefix("found"));
         } catch (ArrayIndexOutOfBoundsException ignored) {
-            player.sendMessage(this.getMain().getFileManager().getErrorWithPrefix("argus"));
+            player.sendMessage(this.main.getFileManager().getErrorWithPrefix("argus"));
         }
         return true;
     }
@@ -113,7 +109,7 @@ public class Executor implements CommandExecutor, TabCompleter {
             if (commandSender.hasPermission("trader.stop"))
                 if ("stop".startsWith(args[0].toLowerCase()))
                     completions.add("stop");
-            for (final Player player : this.getPlayerRadius(((Player) commandSender).getLocation(), this.getMain().getFileManager().getFile("config").getInt("radius"))) {
+            for (final Player player : this.getPlayerRadius(((Player) commandSender).getLocation(), this.main.getFileManager().getFile("config").getInt("radius"))) {
                 if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                     if (player.equals(commandSender)) continue;
                     completions.add(player.getName());

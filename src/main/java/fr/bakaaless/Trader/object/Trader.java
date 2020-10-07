@@ -2,8 +2,6 @@ package fr.bakaaless.Trader.object;
 
 import fr.bakaaless.Trader.plugin.TraderPlugin;
 import fr.bakaaless.Trader.utils.ItemUtils;
-import lombok.AccessLevel;
-import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,17 +22,13 @@ public class Trader implements Listener {
 
     private final TraderPlugin main;
 
-    @Getter(AccessLevel.PRIVATE)
     private final Map<Player, Inventory> playerInventoryMap;
-
-    @Getter(AccessLevel.PACKAGE)
     private final Map<Player, PlayerStatus> playerStatusMap;
-
-    @Getter(AccessLevel.PACKAGE)
     private final Map<Player, Integer> playerMoneyMap;
     private final Map<String, String> titles;
+
     int task;
-    @Getter(AccessLevel.PRIVATE)
+
     private TransactStatus status;
 
     public Trader(final Player ask, final Player answer) {
@@ -59,7 +53,7 @@ public class Trader implements Listener {
         title1.append("§d").append(answer.getName());
         final Inventory inventory1 = this.main.getServer().createInventory(null, 9 * 6, title1.toString());
         this.draw(inventory1);
-        this.getPlayerInventoryMap().put(ask, inventory1);
+        this.playerInventoryMap.put(ask, inventory1);
         ask.openInventory(inventory1);
 
         StringBuilder title2 = new StringBuilder(answer.getName());
@@ -75,14 +69,14 @@ public class Trader implements Listener {
         title2.append("§d").append(ask.getName());
         final Inventory inventory2 = this.main.getServer().createInventory(null, 9 * 6, title2.toString());
         this.draw(inventory2);
-        this.getPlayerInventoryMap().put(answer, inventory2);
+        this.playerInventoryMap.put(answer, inventory2);
         answer.openInventory(inventory2);
 
-        this.getPlayerStatusMap().put(ask, PlayerStatus.WORKING);
-        this.getPlayerStatusMap().put(answer, PlayerStatus.WORKING);
+        this.playerStatusMap.put(ask, PlayerStatus.WORKING);
+        this.playerStatusMap.put(answer, PlayerStatus.WORKING);
 
-        this.getPlayerMoneyMap().put(ask, 0);
-        this.getPlayerMoneyMap().put(answer, 0);
+        this.playerMoneyMap.put(ask, 0);
+        this.playerMoneyMap.put(answer, 0);
     }
 
 
@@ -98,9 +92,9 @@ public class Trader implements Listener {
         InventoryCloseEvent.getHandlerList().unregister(this);
         InventoryDragEvent.getHandlerList().unregister(this);
         InventoryClickEvent.getHandlerList().unregister(this);
-        if (this.getStatus().equals(TransactStatus.FINISH)) return;
+        if (this.status.equals(TransactStatus.FINISH)) return;
         this.status = TransactStatus.CANCELLED;
-        for (final Player player : this.getPlayerInventoryMap().keySet()) {
+        for (final Player player : this.playerInventoryMap.keySet()) {
             if (!player.equals(cancelled)) {
                 player.sendMessage(this.main.getFileManager().getErrorWithPrefix("cancel.other"));
             } else
@@ -123,9 +117,9 @@ public class Trader implements Listener {
         InventoryCloseEvent.getHandlerList().unregister(this);
         InventoryDragEvent.getHandlerList().unregister(this);
         InventoryClickEvent.getHandlerList().unregister(this);
-        if (this.getStatus().equals(TransactStatus.FINISH)) return;
+        if (this.status.equals(TransactStatus.FINISH)) return;
         this.status = TransactStatus.CANCELLED;
-        for (final Player player : this.getPlayerInventoryMap().keySet()) {
+        for (final Player player : this.playerInventoryMap.keySet()) {
             player.sendMessage(this.main.getFileManager().getErrorWithPrefix("cancel.console"));
             final Inventory inventory = player.getOpenInventory().getTopInventory();
             for (int slot = 0; slot < inventory.getSize(); slot++) {
@@ -176,9 +170,9 @@ public class Trader implements Listener {
             return;
         }
         final Player player = (Player) e.getWhoClicked();
-        if (!this.getPlayerInventoryMap().containsKey(player)) return;
+        if (!this.playerInventoryMap.containsKey(player)) return;
         if (e.getInventory().equals(e.getView().getBottomInventory())) return;
-        if (!this.getPlayerInventoryMap().containsValue(e.getInventory())) return;
+        if (!this.playerInventoryMap.containsValue(e.getInventory())) return;
         e.setCancelled(true);
     }
 
@@ -188,10 +182,10 @@ public class Trader implements Listener {
             return;
         }
         final Player player = (Player) e.getWhoClicked();
-        if (!this.getPlayerInventoryMap().containsKey(player)) return;
-        if (!this.getPlayerInventoryMap().containsValue(e.getView().getTopInventory())) return;
+        if (!this.playerInventoryMap.containsKey(player)) return;
+        if (!this.playerInventoryMap.containsValue(e.getView().getTopInventory())) return;
         if (e.getView().getBottomInventory().equals(e.getClickedInventory())) {
-            if (!this.getPlayerStatusMap().get(player).equals(PlayerStatus.WORKING)) {
+            if (!this.playerStatusMap.get(player).equals(PlayerStatus.WORKING)) {
                 e.setCancelled(true);
             } else if (e.getClick().isShiftClick()) {
                 e.setCancelled(true);
@@ -205,7 +199,7 @@ public class Trader implements Listener {
                 e.setCancelled(true);
                 return;
             }
-            if (!this.getPlayerStatusMap().get(player).equals(PlayerStatus.WORKING)) {
+            if (!this.playerStatusMap.get(player).equals(PlayerStatus.WORKING)) {
                 e.setCancelled(true);
                 return;
             }
@@ -213,24 +207,24 @@ public class Trader implements Listener {
                 e.setCancelled(true);
                 return;
             }
-            final Player other = this.getPlayerInventoryMap().keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
+            final Player other = this.playerInventoryMap.keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
             ItemStack itemStack;
             if (e.getCursor() != null && e.getCursor().getType() != Material.AIR) {
                 itemStack = e.getCursor();
             } else {
                 itemStack = ItemUtils.get(Material.RED_STAINED_GLASS_PANE, "§7");
             }
-            this.getPlayerInventoryMap().get(other).setItem(e.getSlot() + 5, itemStack);
+            this.playerInventoryMap.get(other).setItem(e.getSlot() + 5, itemStack);
         } else {
             e.setCancelled(true);
             if (e.getCurrentItem() == null) return;
             if (e.getCurrentItem().getItemMeta().getDisplayName().equalsIgnoreCase(this.titles.get("accept"))) {
-                final Player other = this.getPlayerInventoryMap().keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
-                this.getPlayerInventoryMap().get(other).setItem(41, ItemUtils.get(Material.GREEN_CONCRETE, this.titles.get("status.ready")));
+                final Player other = this.playerInventoryMap.keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
+                this.playerInventoryMap.get(other).setItem(41, ItemUtils.get(Material.GREEN_CONCRETE, this.titles.get("status.ready")));
                 e.getClickedInventory().setItem(39, ItemUtils.get(Material.GREEN_CONCRETE, this.titles.get("status.ready")));
                 e.getClickedInventory().setItem(45, ItemUtils.get(Material.ORANGE_CONCRETE, this.titles.get("edit")));
-                this.getPlayerStatusMap().replace(player, PlayerStatus.WAITING);
-                if (this.getPlayerStatusMap().get(other).equals(PlayerStatus.WAITING) && this.getStatus().equals(TransactStatus.WAITING)) {
+                this.playerStatusMap.replace(player, PlayerStatus.WAITING);
+                if (this.playerStatusMap.get(other).equals(PlayerStatus.WAITING) && this.status.equals(TransactStatus.WAITING)) {
                     this.progress();
                 }
                 return;
@@ -240,16 +234,16 @@ public class Trader implements Listener {
                 return;
             }
             if (e.getCurrentItem().getItemMeta().getDisplayName().equalsIgnoreCase(this.titles.get("edit"))) {
-                final Player other = this.getPlayerInventoryMap().keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
-                this.getPlayerInventoryMap().get(other).setItem(41, ItemUtils.get(Material.YELLOW_CONCRETE, this.titles.get("status.edit")));
+                final Player other = this.playerInventoryMap.keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
+                this.playerInventoryMap.get(other).setItem(41, ItemUtils.get(Material.YELLOW_CONCRETE, this.titles.get("status.edit")));
                 e.getClickedInventory().setItem(39, ItemUtils.get(Material.YELLOW_CONCRETE, this.titles.get("status.edit")));
                 e.getClickedInventory().setItem(45, ItemUtils.get(Material.LIME_CONCRETE, this.titles.get("accept")));
-                this.getPlayerStatusMap().replace(player, PlayerStatus.WORKING);
+                this.playerStatusMap.replace(player, PlayerStatus.WORKING);
                 return;
             }
             if (e.getCurrentItem().getItemMeta().getDisplayName().equalsIgnoreCase(this.titles.get("money.add"))) {
-                final Player other = this.getPlayerInventoryMap().keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
-                int money = this.getPlayerMoneyMap().get(player);
+                final Player other = this.playerInventoryMap.keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
+                int money = this.playerMoneyMap.get(player);
                 if (e.getClick().isLeftClick()) {
                     money++;
                 } else if (e.getClick().isRightClick()) {
@@ -257,22 +251,22 @@ public class Trader implements Listener {
                 } else if (e.getClick().isShiftClick()) {
                     money += 100;
                 }
-                final double balance = this.main.getEcon().get().getBalance(player);
+                final double balance = this.main.getEcon().getBalance(player);
                 if (balance < money) {
                     money -= money - balance;
                 }
-                this.getPlayerMoneyMap().replace(player, money);
-                final ItemStack itemStack = this.getPlayerInventoryMap().get(other).getItem(51);
+                this.playerMoneyMap.replace(player, money);
+                final ItemStack itemStack = this.playerInventoryMap.get(other).getItem(51);
                 final ItemMeta itemMeta = itemStack.getItemMeta();
                 itemMeta.setDisplayName(this.titles.get("money.show").replace("%money%", String.valueOf(money)));
                 itemStack.setItemMeta(itemMeta);
-                this.getPlayerInventoryMap().get(other).setItem(51, itemStack);
+                this.playerInventoryMap.get(other).setItem(51, itemStack);
                 e.getClickedInventory().setItem(47, itemStack);
                 return;
             }
             if (e.getCurrentItem().getItemMeta().getDisplayName().equalsIgnoreCase(this.titles.get("money.remove"))) {
-                final Player other = this.getPlayerInventoryMap().keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
-                int money = this.getPlayerMoneyMap().get(player);
+                final Player other = this.playerInventoryMap.keySet().parallelStream().filter(player1 -> !player1.equals(player)).findFirst().get();
+                int money = this.playerMoneyMap.get(player);
                 if (money == 0) return;
                 if (e.getClick().isLeftClick()) {
                     if (money < 1) money = 0;
@@ -284,12 +278,12 @@ public class Trader implements Listener {
                     if (money < 100) money = 0;
                     else money -= 100;
                 }
-                this.getPlayerMoneyMap().replace(player, money);
-                final ItemStack itemStack = this.getPlayerInventoryMap().get(other).getItem(51);
+                this.playerMoneyMap.replace(player, money);
+                final ItemStack itemStack = this.playerInventoryMap.get(other).getItem(51);
                 final ItemMeta itemMeta = itemStack.getItemMeta();
                 itemMeta.setDisplayName(this.titles.get("money.show").replace("%money%", String.valueOf(money)));
                 itemStack.setItemMeta(itemMeta);
-                this.getPlayerInventoryMap().get(other).setItem(51, itemStack);
+                this.playerInventoryMap.get(other).setItem(51, itemStack);
                 e.getClickedInventory().setItem(47, itemStack);
                 return;
             }
@@ -301,9 +295,9 @@ public class Trader implements Listener {
         if (!(e.getPlayer() instanceof Player)) {
             return;
         }
-        if (this.getStatus().equals(TransactStatus.FINISH)) return;
+        if (this.status.equals(TransactStatus.FINISH)) return;
         final Player player = (Player) e.getPlayer();
-        if (!this.getPlayerInventoryMap().containsKey(player)) return;
+        if (!this.playerInventoryMap.containsKey(player)) return;
         this.cancel(player);
     }
 
@@ -311,22 +305,22 @@ public class Trader implements Listener {
         this.status = TransactStatus.STARTING;
         final int[] time = {5 * 10};
         this.main.getServer().getScheduler().scheduleSyncRepeatingTask(this.main, () -> {
-            if (this.getStatus().equals(TransactStatus.STARTING)) {
-                if (this.getPlayerStatusMap().containsValue(PlayerStatus.WORKING)) {
-                    for (final Inventory inventory : this.getPlayerInventoryMap().values()) {
+            if (this.status.equals(TransactStatus.STARTING)) {
+                if (this.playerStatusMap.containsValue(PlayerStatus.WORKING)) {
+                    for (final Inventory inventory : this.playerInventoryMap.values()) {
                         inventory.setItem(40, ItemUtils.get(Material.GRAY_STAINED_GLASS_PANE, "§7"));
                     }
                     this.status = TransactStatus.WAITING;
                     this.main.getServer().getScheduler().cancelTask(task);
                     return;
                 }
-                for (final Inventory inventory : this.getPlayerInventoryMap().values()) {
+                for (final Inventory inventory : this.playerInventoryMap.values()) {
                     inventory.setItem(40, ItemUtils.get(Material.REDSTONE_BLOCK, this.titles.get("compteur"), (int) Math.ceil(time[0] / 10d)));
                 }
                 if (time[0] == 0) {
                     this.status = TransactStatus.FINISH;
-                    for (final Player player : this.getPlayerInventoryMap().keySet()) {
-                        final Inventory inventory = this.getPlayerInventoryMap().get(player);
+                    for (final Player player : this.playerInventoryMap.keySet()) {
+                        final Inventory inventory = this.playerInventoryMap.get(player);
                         List<ItemStack> items = new ArrayList<>();
                         for (int slot = 0; slot < inventory.getSize(); slot++) {
                             if (isInteractive(slot)) {
@@ -335,10 +329,10 @@ public class Trader implements Listener {
                                 items.add(inventory.getItem(slot));
                             }
                         }
-                        final Player other = this.getPlayerInventoryMap().keySet().parallelStream().filter(player1 -> !player.equals(player1)).findFirst().get();
+                        final Player other = this.playerInventoryMap.keySet().parallelStream().filter(player1 -> !player.equals(player1)).findFirst().get();
                         items.forEach(itemStack -> addItem(other, itemStack));
-                        this.main.getEcon().get().depositPlayer(other, this.getPlayerMoneyMap().get(player));
-                        this.main.getEcon().get().withdrawPlayer(other, this.getPlayerMoneyMap().get(other));
+                        this.main.getEcon().depositPlayer(other, this.playerMoneyMap.get(player));
+                        this.main.getEcon().withdrawPlayer(other, this.playerMoneyMap.get(other));
                         player.closeInventory();
                         player.sendMessage(this.main.getFileManager().getMessageWithPrefix("success"));
                     }
@@ -371,5 +365,17 @@ public class Trader implements Listener {
         WORKING,
         WAITING,
         END
+    }
+
+    public Map<Player, Inventory> getPlayerInventoryMap() {
+        return playerInventoryMap;
+    }
+
+    public Map<Player, PlayerStatus> getPlayerStatusMap() {
+        return playerStatusMap;
+    }
+
+    public Map<Player, Integer> getPlayerMoneyMap() {
+        return playerMoneyMap;
     }
 }

@@ -3,8 +3,6 @@ package fr.bakaaless.Trader.plugin;
 import fr.bakaaless.Trader.commands.Executor;
 import fr.bakaaless.Trader.object.Trader;
 import fr.bakaaless.Trader.utils.FileManager;
-import lombok.AccessLevel;
-import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -13,42 +11,43 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
 public class TraderPlugin extends JavaPlugin {
 
-    @Getter(AccessLevel.PUBLIC)
     private static TraderPlugin instance;
 
-    @Getter(AccessLevel.PUBLIC)
     private FileManager fileManager;
 
-    @Getter(AccessLevel.PUBLIC)
-    private Optional<Economy> econ;
+    private Economy econ;
 
-    @Getter(AccessLevel.PRIVATE)
     private List<Trader> traders;
 
     @Override
     public void onEnable() {
         super.onEnable();
         if (!this.getServer().getPluginManager().isPluginEnabled("Vault")) {
+            this.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', "§c§lTrading §4§l» §cVault isn't detected. Aborted."));
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        try {
+            this.fileManager = new FileManager(this, "messages", "config");
+        } catch (IOException | InvalidConfigurationException e) {
+            this.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', "§c§lTrading §4§l» §cError while retrieve creating files. Aborted."));
+            this.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        if (!setupEconomy()) {
+            this.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', "§c§lTrading §4§l» §cNo economy system detected. Aborted."));
             this.getServer().getPluginManager().disablePlugin(this);
             return;
         }
         TraderPlugin.instance = this;
-        try {
-            this.fileManager = new FileManager(this, "messages", "config");
-        } catch (IOException | InvalidConfigurationException e) {
-            this.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', "§c§lTrading §4§l» §cError while retrieve creating files."));
-        }
         new Executor();
-        if (!setupEconomy()) {
-            this.getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
         this.traders = new ArrayList<>();
     }
 
@@ -59,19 +58,31 @@ public class TraderPlugin extends JavaPlugin {
 
     private boolean setupEconomy() {
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        econ = Optional.ofNullable(rsp != null ? rsp.getProvider() : null);
-        return econ.isPresent();
+        econ = rsp != null ? rsp.getProvider() : null;
+        return econ != null;
     }
 
     public void addTraders(final Trader... traders) {
-        for (final Trader trader : traders) this.getTraders().add(trader);
+        this.traders.addAll(Arrays.asList(traders));
     }
 
     public void removeTraders(final Trader... traders) {
-        for (final Trader trader : traders) this.getTraders().remove(trader);
+        for (final Trader trader : traders) this.traders.remove(trader);
     }
 
     public void stopAll() {
-        this.getTraders().forEach(Trader::stop);
+        this.traders.forEach(Trader::stop);
+    }
+
+    public static TraderPlugin getInstance() {
+        return instance;
+    }
+
+    public FileManager getFileManager() {
+        return fileManager;
+    }
+
+    public Economy getEcon() {
+        return econ;
     }
 }

@@ -15,11 +15,9 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compileOnly "org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT"
-    compileOnly "org.spigotmc:spigot:1.15.2-R0.1-SNAPSHOT"
-    compileOnly "com.github.MilkBowl:VaultAPI:1.7"
-    compileOnly 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    implementation group: 'org.spigotmc', name: 'spigot-api', version: '1.15.2-R0.1-SNAPSHOT'
+    implementation group: 'org.spigotmc', name: 'spigot', version: '1.15.2-R0.1-SNAPSHOT'
+    implementation group: 'com.github.MilkBowl', name: 'VaultAPI', version: '1.7'
 }
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'

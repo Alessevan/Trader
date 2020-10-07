@@ -1,7 +1,6 @@
 package fr.bakaaless.Trader.utils;
 
 import fr.bakaaless.Trader.plugin.TraderPlugin;
-import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -16,7 +15,6 @@ import java.util.logging.Level;
 
 public class FileManager {
 
-    @Getter
     private final TraderPlugin main;
     private final Map<String, File> filesMap;
     private final Map<String, YamlConfiguration> yamlMap;
@@ -49,7 +47,7 @@ public class FileManager {
             if (!this.filesMap.get(file).exists()) {
                 final boolean b = this.filesMap.get(file).getParentFile().mkdirs();
                 if (!b) {
-                    this.getMain().getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', "§c§lTrading §4§l» §cError while retrieve creating file '" + file + "'."));
+                    this.main.getLogger().log(Level.SEVERE, ChatColor.translateAlternateColorCodes('&', "§c§lTrading §4§l» §cError while retrieve creating file '" + file + "'."));
                     continue;
                 }
                 main.saveResource(file + ".yml", false);
